@@ -1,10 +1,10 @@
-const useRouter = () => {
-  const push = (url: string) => {
-    window.history.pushState({}, '', url);
-    window.location.href = window.location.pathname;
-  };
+import { useContext } from 'react';
+import { NavigationContext } from '../component/Router';
 
-  return { push };
+const useRouter = () => {
+  const { changePath } = useContext(NavigationContext);
+
+  return { push: changePath };
 };
 
 export { useRouter };

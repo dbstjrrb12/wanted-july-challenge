@@ -1,24 +1,35 @@
-import { Children, ReactElement, ReactNode } from 'react';
-import { Route } from './Route';
+import { ReactNode, createContext, useEffect, useState } from 'react';
 
-const isReactElement = (child: ReactNode): child is ReactElement => {
-  return !!(
-    child &&
-    typeof child === 'object' &&
-    'type' in child &&
-    'props' in child
-  );
-};
+export const NavigationContext = createContext<{
+  currentpath: string;
+  changePath: (path: string) => void;
+}>({
+  currentpath: '/',
+  changePath: () => null,
+});
 
 const Router = ({ children }: RouteProps) => {
-  const routeElements: ReactElement[] = [];
+  const [pathName, setPathName] = useState(window.location.pathname);
 
-  Children.forEach(children, (child) => {
-    if (isReactElement(child) && child.type === Route)
-      routeElements.push(child);
-  });
+  const changePath = (path: string) => {
+    window.history.pushState({}, '', path);
+    setPathName(path);
+  };
 
-  return routeElements;
+  useEffect(() => {
+    const popStateHandler = () => setPathName(window.location.pathname);
+
+    window.addEventListener('popstate', popStateHandler);
+    return () => {
+      window.removeEventListener('popstate', popStateHandler);
+    };
+  }, []);
+
+  return (
+    <NavigationContext.Provider value={{ currentpath: pathName, changePath }}>
+      {children}
+    </NavigationContext.Provider>
+  );
 };
 
 type RouteProps = {
